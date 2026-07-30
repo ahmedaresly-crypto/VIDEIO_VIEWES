@@ -85,70 +85,70 @@ export default function AdminPanel() {
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }} dir="rtl">
+    <div style={{ padding: '1rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }} dir="rtl">
       
-      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-        <h1 style={{ color: '#1b7bc2', fontSize: '2.5rem' }}>لوحة التحكم المراقبة</h1>
+      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+        <h1 style={{ color: '#1b7bc2', fontSize: '2rem' }}>لوحة التحكم المراقبة</h1>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>سجل الزيارات</h2>
-        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => window.location.href = '/'}>تسجيل خروج / عودة للمشغل</button>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+        <h2 style={{ fontSize: '1.5rem', margin: 0 }}>سجل الزيارات</h2>
+        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }} onClick={() => window.location.href = '/'}>تسجيل خروج / عودة للمشغل</button>
       </div>
 
-      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
-        <h3>إعدادات الفيديو</h3>
+      <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+        <h3 style={{ margin: 0 }}>إعدادات الفيديو</h3>
         
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '1rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '1rem' }}>
           {/* URL Form */}
-          <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px' }}>
-            <h4 style={{ marginBottom: '10px' }}>1. وضع رابط فيديو مباشر (يوتيوب أو غيره)</h4>
-            <form onSubmit={handleUpdateVideo} style={{ display: 'flex', gap: '10px' }}>
+          <div style={{ border: '1px solid #eee', padding: '10px', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '10px', fontSize: '14px' }}>1. وضع رابط فيديو مباشر (يوتيوب أو غيره)</h4>
+            <form onSubmit={handleUpdateVideo} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
               <input 
                 type="url" 
                 value={videoUrl}
                 onChange={(e) => setVideoUrl(e.target.value)}
-                style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 placeholder="أدخل رابط الفيديو"
                 required
                 dir="ltr"
               />
-              <button type="submit" className="btn" style={{ padding: '10px 20px' }}>تحديث الرابط</button>
+              <button type="submit" className="btn" style={{ padding: '10px 20px', flex: '0 0 auto' }}>تحديث الرابط</button>
             </form>
           </div>
 
           {/* File Upload Form */}
-          <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px' }}>
-            <h4 style={{ marginBottom: '10px' }}>2. أو رفع فيديو من جهازك</h4>
-            <form onSubmit={handleUploadFile} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ border: '1px solid #eee', padding: '10px', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '10px', fontSize: '14px' }}>2. أو رفع فيديو من جهازك</h4>
+            <form onSubmit={handleUploadFile} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
               <input 
                 type="file" 
                 accept="video/*"
                 onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
                 disabled={uploading}
               />
-              <button type="submit" className="btn" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none' }} disabled={!file || uploading}>
+              <button type="submit" className="btn" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', flex: '0 0 auto' }} disabled={!file || uploading}>
                 {uploading ? 'جاري الرفع...' : 'رفع الفيديو'}
               </button>
             </form>
           </div>
         </div>
 
-        {message && <p style={{ marginTop: '1rem', color: '#1b7bc2', fontWeight: 'bold' }}>{message}</p>}
+        {message && <p style={{ marginTop: '1rem', color: '#1b7bc2', fontWeight: 'bold', fontSize: '14px' }}>{message}</p>}
       </div>
 
-      <div style={{ overflowX: 'auto', backgroundColor: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '14px' }}>
+      <div style={{ overflowX: 'auto', backgroundColor: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', borderRadius: '8px' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '13px', minWidth: '800px' }}>
           <thead>
             <tr style={{ backgroundColor: '#1b7bc2', color: 'white' }}>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الوقت والتاريخ</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>بصمة الجهاز (Fingerprint)</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الإحداثيات</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>IP</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>نظام التشغيل والمتصفح</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>معلومات الجهاز</th>
-              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الخريطة</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>الوقت والتاريخ</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>بصمة الجهاز</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>الإحداثيات</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>IP</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>نظام التشغيل</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>معلومات الجهاز</th>
+              <th style={{ padding: '10px', border: '1px solid #dee2e6' }}>الخريطة</th>
             </tr>
           </thead>
           <tbody>

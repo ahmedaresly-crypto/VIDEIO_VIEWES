@@ -172,9 +172,9 @@ export default function Home() {
   }
 
   return (
-    <main style={{ padding: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-      <div className="glass-container" style={{ width: '100%', maxWidth: '800px' }}>
-        <h1 style={{ marginBottom: '1.5rem', textAlign: 'center' }}>مشغل الفيديو (Video Player)</h1>
+    <main style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
+      <div className="glass-container" style={{ width: '100%', maxWidth: '900px', padding: '1rem' }}>
+        <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', color: '#1b7bc2' }}>مشغل الفيديو</h1>
         
         {videoUrl ? (
           <div style={{ borderRadius: '8px', overflow: 'hidden', width: '100%' }}>
