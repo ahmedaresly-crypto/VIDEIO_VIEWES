@@ -13,10 +13,10 @@ export async function GET() {
       const newSettings = await prisma.settings.create({
         data: { key: 'global', videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4" }
       });
-      return NextResponse.json({ videoUrl: newSettings.videoUrl });
+      return NextResponse.json({ videoUrl: newSettings.videoUrl, title: null, thumbnailUrl: null });
     }
     
-    return NextResponse.json({ videoUrl: settings.videoUrl });
+    return NextResponse.json({ videoUrl: settings.videoUrl, title: settings.title, thumbnailUrl: settings.thumbnailUrl });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
@@ -24,15 +24,17 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
-    const { videoUrl } = await req.json();
-    if (!videoUrl) {
-      return NextResponse.json({ error: 'videoUrl is required' }, { status: 400 });
-    }
+    const { videoUrl, title, thumbnailUrl } = await req.json();
     
+    const updateData: any = {};
+    if (videoUrl !== undefined) updateData.videoUrl = videoUrl;
+    if (title !== undefined) updateData.title = title;
+    if (thumbnailUrl !== undefined) updateData.thumbnailUrl = thumbnailUrl;
+
     const settings = await prisma.settings.upsert({
       where: { key: 'global' },
-      update: { videoUrl },
-      create: { key: 'global', videoUrl },
+      update: updateData,
+      create: { key: 'global', ...updateData, videoUrl: videoUrl || "https://www.w3schools.com/html/mov_bbb.mp4" },
     });
     
     return NextResponse.json({ success: true, settings });

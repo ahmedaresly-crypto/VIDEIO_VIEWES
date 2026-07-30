@@ -8,10 +8,12 @@ datasource db {
 }
 
 model Settings {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  key       String   @unique @default("global")
-  videoUrl  String   @default("https://www.w3schools.com/html/mov_bbb.mp4")
-  updatedAt DateTime @updatedAt
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  key          String   @unique @default("global")
+  videoUrl     String   @default("https://www.w3schools.com/html/mov_bbb.mp4")
+  title        String?
+  thumbnailUrl String?
+  updatedAt    DateTime @updatedAt
 }
 
 model ViewerLog {

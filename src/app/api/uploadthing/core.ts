@@ -16,6 +16,17 @@ export const ourFileRouter = {
       });
       return { videoUrl };
     }),
+  imageUploader: f({ image: { maxFileSize: "4MB", maxFileCount: 1 } })
+    .onUploadComplete(async ({ metadata, file }) => {
+      console.log("Image upload complete:", file.url);
+      const thumbnailUrl = file.url;
+      await prisma.settings.upsert({
+        where: { key: 'global' },
+        update: { thumbnailUrl },
+        create: { key: 'global', thumbnailUrl },
+      });
+      return { thumbnailUrl };
+    }),
 } satisfies FileRouter;
 
 export type OurFileRouter = typeof ourFileRouter;
