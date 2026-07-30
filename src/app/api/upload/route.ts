@@ -23,7 +23,14 @@ export async function POST(req: Request) {
     const filename = `video-${uniqueSuffix}${extension}`;
 
     // Path to save
-    const filepath = path.join(process.cwd(), 'public', 'uploads', filename);
+    const uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    
+    // Ensure directory exists
+    try {
+      await require('fs/promises').mkdir(uploadDir, { recursive: true });
+    } catch (e) {}
+
+    const filepath = path.join(uploadDir, filename);
 
     // Save to disk
     await writeFile(filepath, buffer);
