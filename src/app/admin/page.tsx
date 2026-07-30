@@ -82,6 +82,8 @@ export default function AdminPanel() {
       setUploading(false);
       setTimeout(() => setMessage(''), 4000);
     }
+  };
+
   const exportToCSV = () => {
     if (logs.length === 0) {
       alert('لا توجد بيانات لتصديرها');
