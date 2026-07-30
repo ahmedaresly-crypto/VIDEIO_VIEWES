@@ -6,7 +6,7 @@ function streamFile(filepath: string, options?: any): ReadableStream<Uint8Array>
   const stream = fs.createReadStream(filepath, options);
   return new ReadableStream({
     start(controller) {
-      stream.on('data', (chunk: Buffer) => controller.enqueue(new Uint8Array(chunk)));
+      stream.on('data', (chunk: any) => controller.enqueue(new Uint8Array(chunk)));
       stream.on('end', () => controller.close());
       stream.on('error', (err: any) => controller.error(err));
     },
