@@ -16,8 +16,9 @@ function streamFile(filepath: string, options?: any): ReadableStream<Uint8Array>
   });
 }
 
-export async function GET(req: Request, { params }: { params: { filename: string } }) {
-  const filepath = path.join(process.cwd(), 'public', 'uploads', params.filename);
+export async function GET(req: Request, { params }: { params: Promise<{ filename: string }> }) {
+  const resolvedParams = await params;
+  const filepath = path.join(process.cwd(), 'public', 'uploads', resolvedParams.filename);
   
   if (!fs.existsSync(filepath)) {
     return new NextResponse('File not found', { status: 404 });
