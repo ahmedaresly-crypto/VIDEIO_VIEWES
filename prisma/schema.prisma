@@ -11,6 +11,7 @@ generator client {
 // For local testing we use sqlite, but for Render you should change this to "postgresql"
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
 model Settings {
@@ -24,6 +25,10 @@ model ViewerLog {
   fingerprint String
   latitude    Float?
   longitude   Float?
-  userAgent   String?
-  createdAt   DateTime @default(now())
+  userAgent        String?
+  ip               String?
+  screenResolution String?
+  language         String?
+  timezone         String?
+  createdAt        DateTime @default(now())
 }

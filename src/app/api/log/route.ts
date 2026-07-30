@@ -15,18 +15,26 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const data = await req.json();
-    const { fingerprint, latitude, longitude, userAgent } = data;
+    const { fingerprint, latitude, longitude, userAgent, screenResolution, language, timezone } = data;
     
     if (!fingerprint) {
       return NextResponse.json({ error: 'Fingerprint is required' }, { status: 400 });
     }
     
+    // Get IP address from headers
+    const forwardedFor = req.headers.get('x-forwarded-for');
+    const ip = forwardedFor ? forwardedFor.split(',')[0] : (req.headers.get('x-real-ip') || 'Unknown IP');
+
     const log = await prisma.viewerLog.create({
       data: {
         fingerprint,
         latitude,
         longitude,
-        userAgent
+        userAgent,
+        ip,
+        screenResolution,
+        language,
+        timezone
       }
     });
     

