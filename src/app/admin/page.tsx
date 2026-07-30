@@ -17,6 +17,8 @@ type Log = {
 
 export default function AdminPanel() {
   const [videoUrl, setVideoUrl] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [logs, setLogs] = useState<Log[]>([]);
   const [message, setMessage] = useState('');
 
@@ -41,13 +43,45 @@ export default function AdminPanel() {
     });
     
     if (res.ok) {
-      setMessage('تم تحديث الفيديو بنجاح!');
+      setMessage('تم تحديث الرابط بنجاح!');
     } else {
       const errData = await res.json().catch(() => ({}));
       setMessage(`حدث خطأ أثناء التحديث: ${errData.error || res.statusText}`);
     }
     
     setTimeout(() => setMessage(''), 3000);
+  };
+
+  const handleUploadFile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!file) return;
+
+    setUploading(true);
+    setMessage('جاري رفع الفيديو، يرجى الانتظار (قد يستغرق بعض الوقت حسب حجم الفيديو)...');
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setVideoUrl(data.videoUrl);
+        setMessage('تم رفع الفيديو وحفظه بنجاح!');
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        setMessage(`حدث خطأ أثناء الرفع: ${errData.error || res.statusText}`);
+      }
+    } catch (error) {
+      setMessage('حدث خطأ في الاتصال أثناء الرفع.');
+    } finally {
+      setUploading(false);
+      setTimeout(() => setMessage(''), 4000);
+    }
   };
 
   return (
@@ -59,24 +93,49 @@ export default function AdminPanel() {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
         <h2>سجل الزيارات</h2>
-        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>تسجيل خروج</button>
+        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 20px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={() => window.location.href = '/'}>تسجيل خروج / عودة للمشغل</button>
       </div>
 
       <div style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
         <h3>إعدادات الفيديو</h3>
-        <form onSubmit={handleUpdateVideo} style={{ marginTop: '1rem', display: 'flex', gap: '10px' }}>
-          <input 
-            type="url" 
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-            placeholder="أدخل رابط الفيديو"
-            required
-            dir="ltr"
-          />
-          <button type="submit" className="btn" style={{ padding: '10px 20px' }}>حفظ</button>
-        </form>
-        {message && <p style={{ marginTop: '1rem', color: '#1b7bc2' }}>{message}</p>}
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '1rem' }}>
+          {/* URL Form */}
+          <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '10px' }}>1. وضع رابط فيديو مباشر (يوتيوب أو غيره)</h4>
+            <form onSubmit={handleUpdateVideo} style={{ display: 'flex', gap: '10px' }}>
+              <input 
+                type="url" 
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+                style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                placeholder="أدخل رابط الفيديو"
+                required
+                dir="ltr"
+              />
+              <button type="submit" className="btn" style={{ padding: '10px 20px' }}>تحديث الرابط</button>
+            </form>
+          </div>
+
+          {/* File Upload Form */}
+          <div style={{ border: '1px solid #eee', padding: '15px', borderRadius: '8px' }}>
+            <h4 style={{ marginBottom: '10px' }}>2. أو رفع فيديو من جهازك</h4>
+            <form onSubmit={handleUploadFile} style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+              <input 
+                type="file" 
+                accept="video/*"
+                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
+                style={{ flex: 1, padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
+                disabled={uploading}
+              />
+              <button type="submit" className="btn" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none' }} disabled={!file || uploading}>
+                {uploading ? 'جاري الرفع...' : 'رفع الفيديو'}
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {message && <p style={{ marginTop: '1rem', color: '#1b7bc2', fontWeight: 'bold' }}>{message}</p>}
       </div>
 
       <div style={{ overflowX: 'auto', backgroundColor: 'white', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
