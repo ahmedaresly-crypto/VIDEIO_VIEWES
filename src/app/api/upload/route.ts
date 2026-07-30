@@ -36,7 +36,7 @@ export async function POST(req: Request) {
     await writeFile(filepath, buffer);
 
     // Update database with the new local URL
-    const videoUrl = `/uploads/${filename}`;
+    const videoUrl = `/api/file/${filename}`;
     await prisma.settings.upsert({
       where: { key: 'global' },
       update: { videoUrl },

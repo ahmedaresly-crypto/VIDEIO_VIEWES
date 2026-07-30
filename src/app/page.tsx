@@ -71,6 +71,12 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         let url = data.videoUrl;
+        
+        // Fix old upload URLs to use the streaming API
+        if (url && url.startsWith('/uploads/')) {
+          url = url.replace('/uploads/', '/api/file/');
+        }
+
         // Fix Facebook Reel URLs 
         if (url && url.includes('facebook.com/reel/')) {
           const reelId = url.split('/reel/')[1].split('/')[0].split('?')[0];
