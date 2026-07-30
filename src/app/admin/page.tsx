@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import { UploadButton } from "@/utils/uploadthing";
 
 type Log = {
   id: string;
@@ -155,19 +156,24 @@ export default function AdminPanel() {
 
           {/* File Upload Form */}
           <div style={{ border: '1px solid #eee', padding: '10px', borderRadius: '8px' }}>
-            <h4 style={{ marginBottom: '10px', fontSize: '14px' }}>2. أو رفع فيديو من جهازك</h4>
-            <form onSubmit={handleUploadFile} style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-              <input 
-                type="file" 
-                accept="video/*"
-                onChange={(e) => setFile(e.target.files ? e.target.files[0] : null)}
-                style={{ flex: 1, minWidth: '200px', padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }}
-                disabled={uploading}
+            <h4 style={{ marginBottom: '10px', fontSize: '14px' }}>2. أو رفع فيديو من جهازك للسحابة الدائمة (UploadThing)</h4>
+            <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '10px 0' }}>
+              <UploadButton
+                endpoint="videoUploader"
+                onClientUploadComplete={(res) => {
+                  if (res && res.length > 0) {
+                    setVideoUrl(res[0].url);
+                    setMessage('تم رفع الفيديو للسحابة وحفظه بنجاح للأبد! 🚀');
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  setMessage(`حدث خطأ أثناء الرفع: ${error.message}`);
+                }}
+                appearance={{
+                  button: { backgroundColor: '#28a745', padding: '10px 20px' }
+                }}
               />
-              <button type="submit" className="btn" style={{ padding: '10px 20px', backgroundColor: '#28a745', color: 'white', border: 'none', flex: '0 0 auto' }} disabled={!file || uploading}>
-                {uploading ? 'جاري الرفع...' : 'رفع الفيديو'}
-              </button>
-            </form>
+            </div>
           </div>
         </div>
 
