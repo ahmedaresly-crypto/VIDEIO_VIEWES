@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 type Log = {
-  id: number;
+  id: string;
   fingerprint: string;
   latitude: number | null;
   longitude: number | null;

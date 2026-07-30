@@ -1,30 +1,24 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
-// For local testing we use sqlite, but for Render you should change this to "postgresql"
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 model Settings {
-  id        Int      @id @default(1)
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  key       String   @unique @default("global")
   videoUrl  String   @default("https://www.w3schools.com/html/mov_bbb.mp4")
   updatedAt DateTime @updatedAt
 }
 
 model ViewerLog {
-  id          Int      @id @default(autoincrement())
-  fingerprint String
-  latitude    Float?
-  longitude   Float?
+  id               String   @id @default(auto()) @map("_id") @db.ObjectId
+  fingerprint      String
+  latitude         Float?
+  longitude        Float?
   userAgent        String?
   ip               String?
   screenResolution String?

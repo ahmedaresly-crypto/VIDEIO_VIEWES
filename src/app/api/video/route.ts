@@ -5,12 +5,17 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    let settings = await prisma.settings.findFirst();
+    const settings = await prisma.settings.findUnique({
+      where: { key: 'global' }
+    });
+    
     if (!settings) {
-      settings = await prisma.settings.create({
-        data: { videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4" }
+      const newSettings = await prisma.settings.create({
+        data: { key: 'global', videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4" }
       });
+      return NextResponse.json({ videoUrl: newSettings.videoUrl });
     }
+    
     return NextResponse.json({ videoUrl: settings.videoUrl });
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
@@ -24,17 +29,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'videoUrl is required' }, { status: 400 });
     }
     
-    let settings = await prisma.settings.findFirst();
-    if (settings) {
-      settings = await prisma.settings.update({
-        where: { id: settings.id },
-        data: { videoUrl }
-      });
-    } else {
-      settings = await prisma.settings.create({
-        data: { videoUrl }
-      });
-    }
+    const settings = await prisma.settings.upsert({
+      where: { key: 'global' },
+      update: { videoUrl },
+      create: { key: 'global', videoUrl },
+    });
     
     return NextResponse.json({ success: true, settings });
   } catch (error: any) {
