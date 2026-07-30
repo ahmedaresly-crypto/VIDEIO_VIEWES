@@ -16,14 +16,16 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
   if (!url) return null;
 
   let player = null;
+  const playerStyle = { position: 'absolute' as const, top: 0, left: 0, width: '100%', height: '100%' };
+  
   if (url.includes('youtube.com') || url.includes('youtu.be')) {
     const videoId = url.includes('v=') ? url.split('v=')[1].split('&')[0] : url.split('/').pop();
-    player = <iframe width="100%" height="450" src={`https://www.youtube.com/embed/${videoId}?autoplay=${interacted ? 1 : 0}`} frameBorder="0" allowFullScreen allow="autoplay"></iframe>;
+    player = <iframe style={playerStyle} src={`https://www.youtube.com/embed/${videoId}?autoplay=${interacted ? 1 : 0}`} frameBorder="0" allowFullScreen allow="autoplay"></iframe>;
   } else if (url.includes('facebook.com')) {
     const fbUrl = encodeURIComponent(url);
-    player = <iframe src={`https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&autoplay=${interacted ? 'true' : 'false'}`} width="100%" height="450" style={{border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allowFullScreen={true} allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>;
+    player = <iframe src={`https://www.facebook.com/plugins/video.php?href=${fbUrl}&show_text=false&autoplay=${interacted ? 'true' : 'false'}`} style={{...playerStyle, border: 'none', overflow: 'hidden'}} scrolling="no" frameBorder="0" allowFullScreen={true} allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"></iframe>;
   } else {
-    player = <video src={url} controls width="100%" height="450" onPlay={onPlay}></video>;
+    player = <video src={url} controls style={playerStyle} onPlay={onPlay}></video>;
   }
 
   return (
