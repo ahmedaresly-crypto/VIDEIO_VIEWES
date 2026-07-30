@@ -82,6 +82,37 @@ export default function AdminPanel() {
       setUploading(false);
       setTimeout(() => setMessage(''), 4000);
     }
+  const exportToCSV = () => {
+    if (logs.length === 0) {
+      alert('لا توجد بيانات لتصديرها');
+      return;
+    }
+    
+    const headers = ['الوقت والتاريخ', 'بصمة الجهاز', 'الإحداثيات', 'IP', 'نظام التشغيل', 'معلومات الجهاز'];
+    
+    const rows = logs.map(log => {
+      const date = new Date(log.createdAt).toLocaleString('ar-EG');
+      const coords = log.latitude && log.longitude ? `${log.latitude}, ${log.longitude}` : '-';
+      const device = `الشاشة: ${log.screenResolution || '-'} | اللغة: ${log.language || '-'} | المنطقة: ${log.timezone || '-'}`;
+      
+      return [
+        `"${date}"`,
+        `"${log.fingerprint}"`,
+        `"${coords}"`,
+        `"${log.ip || '-'}"`,
+        `"${log.userAgent || '-'}"`,
+        `"${device}"`
+      ].join(',');
+    });
+    
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + headers.join(',') + '\n' + rows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `video_logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -93,7 +124,10 @@ export default function AdminPanel() {
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <h2 style={{ fontSize: '1.5rem', margin: 0 }}>سجل الزيارات</h2>
-        <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }} onClick={() => window.location.href = '/'}>تسجيل خروج / عودة للمشغل</button>
+        <div style={{ display: 'flex', gap: '10px' }}>
+          <button className="btn" style={{ backgroundColor: '#28a745', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }} onClick={exportToCSV}>حفظ كملف Excel (CSV)</button>
+          <button className="btn" style={{ backgroundColor: '#d9534f', color: 'white', padding: '10px 15px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '14px' }} onClick={() => window.location.href = '/'}>عودة للمشغل</button>
+        </div>
       </div>
 
       <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
