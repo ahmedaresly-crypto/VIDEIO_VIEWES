@@ -38,7 +38,7 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
             zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.85)',
             display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-            color: 'white', border: 'none', width: '100%', fontFamily: 'inherit'
+            color: 'white', border: 'none', fontFamily: 'inherit'
           }}
         >
           <div style={{
