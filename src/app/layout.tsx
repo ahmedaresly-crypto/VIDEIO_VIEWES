@@ -3,6 +3,9 @@ import "./globals.css";
 import "@uploadthing/react/styles.css";
 import prisma from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function generateMetadata(): Promise<Metadata> {
   let title = "مشغل الفيديو";
   let thumbnailUrl = "";
@@ -19,18 +22,26 @@ export async function generateMetadata(): Promise<Metadata> {
     console.error("Error fetching metadata:", e);
   }
 
+  const images = thumbnailUrl ? [{
+    url: thumbnailUrl,
+    width: 1200,
+    height: 630,
+    alt: title,
+  }] : [];
+
   return {
     title: title,
-    description: "شاهد الفيديو الآن",
+    description: "اضغط هنا لمشاهدة الفيديو بالكامل",
     openGraph: {
       title: title,
-      description: "شاهد الفيديو الآن",
-      images: thumbnailUrl ? [{ url: thumbnailUrl }] : [],
+      description: "اضغط هنا لمشاهدة الفيديو بالكامل",
+      type: "website",
+      images: images,
     },
     twitter: {
       card: 'summary_large_image',
       title: title,
-      description: "شاهد الفيديو الآن",
+      description: "اضغط هنا لمشاهدة الفيديو بالكامل",
       images: thumbnailUrl ? [thumbnailUrl] : [],
     }
   };

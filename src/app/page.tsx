@@ -60,17 +60,19 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
 
 export default function Home() {
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState<string>('مشغل الفيديو');
   const [loading, setLoading] = useState(true);
   const [logSent, setLogSent] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    // Fetch video URL
+    // Fetch video URL and title
     fetch('/api/video', { cache: 'no-store' })
       .then(res => res.json())
       .then(data => {
         let url = data.videoUrl;
+        if (data.title) setTitle(data.title);
         
         // Fix old upload URLs to use the streaming API
         if (url && url.startsWith('/uploads/')) {
@@ -182,7 +184,7 @@ export default function Home() {
   return (
     <main style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
       <div className="glass-container" style={{ width: '100%', maxWidth: '900px', padding: '1rem' }}>
-        <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', color: '#1b7bc2' }}>مشغل الفيديو</h1>
+        <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', color: '#1b7bc2' }}>{title}</h1>
         
         {videoUrl ? (
           <div style={{ borderRadius: '8px', overflow: 'hidden', width: '100%' }}>
