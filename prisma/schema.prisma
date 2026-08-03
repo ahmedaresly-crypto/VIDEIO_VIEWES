@@ -12,8 +12,9 @@ model Settings {
   key          String   @unique @default("global")
   videoUrl     String   @default("https://www.w3schools.com/html/mov_bbb.mp4")
   title        String?
-  thumbnailUrl String?
-  updatedAt    DateTime @updatedAt
+  thumbnailUrl  String?
+  adminPassword String?  @default("admin123")
+  updatedAt     DateTime @updatedAt
 }
 
 model ViewerLog {

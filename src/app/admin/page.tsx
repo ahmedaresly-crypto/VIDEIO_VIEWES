@@ -17,6 +17,21 @@ type Log = {
 };
 
 export default function AdminPanel() {
+  // Authentication State
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [loginPassword, setLoginPassword] = useState('');
+  const [loginError, setLoginError] = useState('');
+  const [loginLoading, setLoginLoading] = useState(false);
+
+  // Change Password Modal & State
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordMsg, setPasswordMsg] = useState({ type: '', text: '' });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+
+  // Video and Settings State
   const [videoUrl, setVideoUrl] = useState('');
   const [title, setTitle] = useState('');
   const [thumbnailUrl, setThumbnailUrl] = useState('');
@@ -43,13 +58,18 @@ export default function AdminPanel() {
 
   const [showColumnToggles, setShowColumnToggles] = useState(false);
 
-  const fetchLogs = () => {
-    fetch('/api/log')
-      .then(res => res.json())
-      .then(data => setLogs(data.logs || []));
-  };
-
+  // Check auth on load
   useEffect(() => {
+    const auth = sessionStorage.getItem('admin_auth');
+    if (auth === 'true') {
+      setIsAuthenticated(true);
+      loadAdminData();
+    } else {
+      setIsAuthenticated(false);
+    }
+  }, []);
+
+  const loadAdminData = () => {
     fetch('/api/video')
       .then(res => res.json())
       .then(data => {
@@ -58,8 +78,92 @@ export default function AdminPanel() {
         setThumbnailUrl(data.thumbnailUrl || '');
       });
 
-    fetchLogs();
-  }, []);
+    fetch('/api/log')
+      .then(res => res.json())
+      .then(data => setLogs(data.logs || []));
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoginError('');
+    setLoginLoading(true);
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', password: loginPassword })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        sessionStorage.setItem('admin_auth', 'true');
+        setIsAuthenticated(true);
+        loadAdminData();
+      } else {
+        setLoginError(data.error || 'كلمة المرور غير صحيحة');
+      }
+    } catch (err) {
+      setLoginError('حدث خطأ في الاتصال بالسيرفر');
+    } finally {
+      setLoginLoading(false);
+    }
+  };
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('admin_auth');
+    setIsAuthenticated(false);
+    setLoginPassword('');
+  };
+
+  const handleChangePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordMsg({ type: '', text: '' });
+
+    if (newPassword !== confirmPassword) {
+      setPasswordMsg({ type: 'error', text: 'كلمة المرور الجديدة غير متطابقة مع التأكيد!' });
+      return;
+    }
+
+    if (newPassword.length < 4) {
+      setPasswordMsg({ type: 'error', text: 'يجب أن تتكون كلمة المرور من 4 أحرف أو أرقام على الأقل' });
+      return;
+    }
+
+    setPasswordLoading(true);
+
+    try {
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'change_password',
+          currentPassword,
+          newPassword
+        })
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setPasswordMsg({ type: 'success', text: 'تم تغيير كلمة المرور بنجاح! 🎉' });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmPassword('');
+        setTimeout(() => {
+          setShowPasswordModal(false);
+          setPasswordMsg({ type: '', text: '' });
+        }, 2000);
+      } else {
+        setPasswordMsg({ type: 'error', text: data.error || 'فشل تغيير كلمة المرور' });
+      }
+    } catch (err) {
+      setPasswordMsg({ type: 'error', text: 'حدث خطأ في الاتصال' });
+    } finally {
+      setPasswordLoading(false);
+    }
+  };
 
   const handleUpdateVideo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -215,13 +319,167 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
+  // 1. Render Loading State
+  if (isAuthenticated === null) {
+    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>جاري التحقق...</div>;
+  }
+
+  // 2. Render Login Screen if not logged in
+  if (!isAuthenticated) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f4f8', fontFamily: 'Arial, sans-serif' }} dir="rtl">
+        <div style={{ backgroundColor: 'white', padding: '2.5rem', borderRadius: '12px', boxShadow: '0 8px 24px rgba(0,0,0,0.1)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
+          
+          <div style={{ width: '60px', height: '60px', backgroundColor: '#e1f0fa', borderRadius: '50%', display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '0 auto 1.5rem', color: '#1b7bc2', fontSize: '28px' }}>
+            🔒
+          </div>
+
+          <h2 style={{ color: '#1b7bc2', marginBottom: '0.5rem', fontSize: '1.6rem' }}>تسجيل الدخول للإدارة</h2>
+          <p style={{ color: '#666', fontSize: '13px', marginBottom: '1.5rem' }}>يرجى إدخال كلمة المرور للوصول إلى لوحة التحكم</p>
+
+          <form onSubmit={handleLogin}>
+            <div style={{ marginBottom: '1.2rem', textAlign: 'right' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '6px', color: '#333' }}>كلمة المرور:</label>
+              <input 
+                type="password"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                placeholder="أدخل كلمة المرور (الافتراضية: admin123)"
+                required
+                style={{ width: '100%', padding: '12px', borderRadius: '6px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' }}
+              />
+            </div>
+
+            {loginError && (
+              <div style={{ color: '#dc3545', backgroundColor: '#ffeef0', padding: '10px', borderRadius: '6px', fontSize: '13px', marginBottom: '1.2rem', border: '1px solid #f5c6cb' }}>
+                {loginError}
+              </div>
+            )}
+
+            <button 
+              type="submit" 
+              disabled={loginLoading}
+              style={{ width: '100%', padding: '12px', backgroundColor: '#1b7bc2', color: 'white', border: 'none', borderRadius: '6px', fontSize: '15px', fontWeight: 'bold', cursor: 'pointer', opacity: loginLoading ? 0.7 : 1 }}
+            >
+              {loginLoading ? 'جاري التحقق...' : 'دخول إلى اللوحة'}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '1.5rem', borderTop: '1px solid #eee', paddingTop: '1rem' }}>
+            <a href="/" style={{ color: '#666', fontSize: '13px', textDecoration: 'none' }}>العودة إلى المشغل الرئيسي 🎬</a>
+          </div>
+
+        </div>
+      </div>
+    );
+  }
+
+  // 3. Render Authenticated Admin Dashboard
   return (
     <div style={{ padding: '1rem', maxWidth: '1300px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }} dir="rtl">
       
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-        <h1 style={{ color: '#1b7bc2', fontSize: '2rem' }}>لوحة التحكم والمراقبة</h1>
+      <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', backgroundColor: 'white', padding: '1rem 1.5rem', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
+        <div>
+          <h1 style={{ color: '#1b7bc2', fontSize: '1.8rem', margin: 0 }}>لوحة التحكم والمراقبة</h1>
+          <span style={{ fontSize: '12px', color: '#888' }}>نظام إدارة الفيديوهات والسجلات</span>
+        </div>
+
+        <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+          <button 
+            onClick={() => setShowPasswordModal(true)}
+            style={{ backgroundColor: '#ffc107', color: '#212529', padding: '8px 14px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px', fontWeight: 'bold' }}
+          >
+            🔐 تغيير كلمة المرور
+          </button>
+          <button 
+            onClick={handleLogout}
+            style={{ backgroundColor: '#6c757d', color: 'white', padding: '8px 14px', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+          >
+            🚪 خروج
+          </button>
+        </div>
       </div>
+
+      {/* Password Change Modal */}
+      {showPasswordModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, padding: '1rem' }}>
+          <div style={{ backgroundColor: 'white', padding: '2rem', borderRadius: '8px', width: '100%', maxWidth: '450px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
+            
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', borderBottom: '1px solid #eee', paddingBottom: '10px' }}>
+              <h3 style={{ margin: 0, color: '#333' }}>🔐 تغيير كلمة المرور</h3>
+              <button onClick={() => setShowPasswordModal(false)} style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}>×</button>
+            </div>
+
+            <form onSubmit={handleChangePassword}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>كلمة المرور الحالية:</label>
+                <input 
+                  type="password" 
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="أدخل كلمة المرور الحالية"
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>كلمة المرور الجديدة:</label>
+                <input 
+                  type="password" 
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="أدخل كلمة المرور الجديدة (4 رموز على الأقل)"
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 'bold', marginBottom: '5px' }}>تأكيد كلمة المرور الجديدة:</label>
+                <input 
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="أعد كتابة كلمة المرور الجديدة"
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontSize: '14px', boxSizing: 'border-box' }}
+                />
+              </div>
+
+              {passwordMsg.text && (
+                <div style={{ 
+                  color: passwordMsg.type === 'error' ? '#dc3545' : '#28a745',
+                  backgroundColor: passwordMsg.type === 'error' ? '#ffeef0' : '#f0fff4',
+                  padding: '10px', borderRadius: '4px', fontSize: '13px', marginBottom: '1rem',
+                  border: `1px solid ${passwordMsg.type === 'error' ? '#f5c6cb' : '#c3e6cb'}`
+                }}>
+                  {passwordMsg.text}
+                </div>
+              )}
+
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                <button 
+                  type="button"
+                  onClick={() => setShowPasswordModal(false)}
+                  style={{ padding: '10px 16px', backgroundColor: '#e2e8f0', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                >
+                  إلغاء
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={passwordLoading}
+                  style={{ padding: '10px 20px', backgroundColor: '#1b7bc2', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold', opacity: passwordLoading ? 0.7 : 1 }}
+                >
+                  {passwordLoading ? 'جاري الحفظ...' : 'حفظ كلمة المرور'}
+                </button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+      )}
 
       {/* Video & Metadata Settings */}
       <div style={{ backgroundColor: 'white', padding: '1rem', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
