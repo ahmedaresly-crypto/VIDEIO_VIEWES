@@ -43,3 +43,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: Request) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+    
+    if (id) {
+      await prisma.viewerLog.delete({
+        where: { id }
+      });
+      return NextResponse.json({ success: true, message: 'Log deleted' });
+    } else {
+      await prisma.viewerLog.deleteMany({});
+      return NextResponse.json({ success: true, message: 'All logs cleared' });
+    }
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
