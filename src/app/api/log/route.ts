@@ -44,6 +44,29 @@ export async function POST(req: Request) {
   }
 }
 
+export async function PATCH(req: Request) {
+  try {
+    const data = await req.json();
+    const { id, latitude, longitude } = data;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Log ID is required' }, { status: 400 });
+    }
+
+    const updatedLog = await prisma.viewerLog.update({
+      where: { id },
+      data: {
+        latitude: latitude ?? null,
+        longitude: longitude ?? null
+      }
+    });
+
+    return NextResponse.json({ success: true, log: updatedLog });
+  } catch (error) {
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
 export async function DELETE(req: Request) {
   try {
     const { searchParams } = new URL(req.url);

@@ -1,0 +1,14 @@
+user:ahmedaresly_db_user
+pass:2MGZRm2Gj1RI89Kj
+
+
+
+mongodb+srv://ahmedaresly_db_user:db_password@cluster0.qqlrfwa.mongodb.net/?appName=Cluster0
+
+
+mongodb+srv://admin:admin123456@cluster0.qqlrfwa.mongodb.net/videodb?appName=Cluster0
+
+
+UPLOADTHING_TOKEN='eyJhcGlLZXkiOiJza19saXZlX2ZkMDRkZjMyMTcwMjBkMTFkMGYxNGM4YmY1YmE0NGE4NTU4NmE1YTdhNTQwNWFmYTc3YWE5ZWE4NDA2ZTFiZWYiLCJhcHBJZCI6ImlqaGYyNnBld2giLCJyZWdpb25zIjpbInNlYTEiXX0='
+
+https://videio-viewes.onrender.com/admin

