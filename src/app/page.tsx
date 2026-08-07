@@ -43,10 +43,10 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
         >
           <div style={{
             width: '74px', height: '74px', 
-            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
+            background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)', 
             borderRadius: '50%',
             display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1.2rem',
-            boxShadow: '0 8px 25px rgba(2, 132, 199, 0.6), 0 0 0 6px rgba(2, 132, 199, 0.2)',
+            boxShadow: '0 8px 25px rgba(239, 68, 68, 0.6), 0 0 0 6px rgba(239, 68, 68, 0.2)',
             transition: 'transform 0.2s ease'
           }}>
             <div style={{
@@ -240,9 +240,9 @@ export default function Home() {
         maxWidth: '960px', 
         padding: '1.2rem', 
         borderRadius: '16px',
-        backgroundColor: 'rgba(23, 27, 38, 0.95)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
+        backgroundColor: 'rgba(20, 20, 28, 0.95)',
+        border: '2px solid #ef4444',
+        boxShadow: '0 0 25px rgba(239, 68, 68, 0.35), 0 25px 50px -12px rgba(0, 0, 0, 0.85)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)'
       }}>
@@ -251,15 +251,16 @@ export default function Home() {
           textAlign: 'center', 
           fontSize: '1.6rem', 
           fontWeight: 'bold', 
-          color: '#38bdf8',
+          color: '#f87171',
           letterSpacing: '-0.01em',
-          lineHeight: 1.4
+          lineHeight: 1.4,
+          textShadow: '0 2px 10px rgba(239, 68, 68, 0.3)'
         }}>
           {title}
         </h1>
         
         {videoUrl ? (
-          <div style={{ borderRadius: '12px', overflow: 'hidden', width: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.6)' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', width: '100%', border: '1px solid rgba(239, 68, 68, 0.5)', boxShadow: '0 10px 30px rgba(0,0,0,0.6)' }}>
             <CustomPlayer url={videoUrl} onPlay={handlePlay} />
           </div>
         ) : (
