@@ -29,29 +29,37 @@ function CustomPlayer({ url, onPlay }: { url: string, onPlay: () => void }) {
   }
 
   return (
-    <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '16/9' }}>
+    <div style={{ position: 'relative', width: '100%', borderRadius: '12px', overflow: 'hidden', backgroundColor: '#000', aspectRatio: '16/9' }}>
       {!interacted && (
         <button 
           type="button"
           onClick={handleInteraction}
           style={{
             position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', 
-            zIndex: 10, cursor: 'pointer', background: 'rgba(0,0,0,0.85)',
+            zIndex: 10, cursor: 'pointer', background: 'linear-gradient(180deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.85) 100%)',
             display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-            color: 'white', border: 'none', fontFamily: 'inherit'
+            color: 'white', border: 'none', fontFamily: 'inherit', padding: '1rem'
           }}
         >
           <div style={{
-            width: '80px', height: '80px', backgroundColor: '#1b7bc2', borderRadius: '50%',
-            display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1rem',
-            boxShadow: '0 4px 15px rgba(27, 123, 194, 0.5)'
+            width: '74px', height: '74px', 
+            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
+            borderRadius: '50%',
+            display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '1.2rem',
+            boxShadow: '0 8px 25px rgba(2, 132, 199, 0.6), 0 0 0 6px rgba(2, 132, 199, 0.2)',
+            transition: 'transform 0.2s ease'
           }}>
             <div style={{
-              width: 0, height: 0, borderTop: '15px solid transparent', borderBottom: '15px solid transparent',
-              borderLeft: '25px solid white', marginLeft: '5px'
+              width: 0, height: 0, 
+              borderTop: '13px solid transparent', 
+              borderBottom: '13px solid transparent',
+              borderLeft: '22px solid white', 
+              marginLeft: '5px'
             }}></div>
           </div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>اضغط هنا لتشغيل الفيديو</h2>
+          <h2 style={{ fontSize: '1.3rem', fontWeight: 'bold', margin: 0, color: '#f8fafc', textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
+            اضغط هنا لتشغيل الفيديو
+          </h2>
         </button>
       )}
       {interacted ? player : null}
@@ -209,20 +217,54 @@ export default function Home() {
   };
 
   if (loading || !mounted) {
-    return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>جاري التحميل...</div>;
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', minHeight: '100dvh', backgroundColor: '#0a0d14', color: '#94a3b8', fontSize: '1.1rem', fontFamily: 'Arial, sans-serif' }} dir="rtl">
+        جاري التحميل...
+      </div>
+    );
   }
 
   return (
-    <main style={{ padding: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh' }}>
-      <div className="glass-container" style={{ width: '100%', maxWidth: '900px', padding: '1rem' }}>
-        <h1 style={{ marginBottom: '1.5rem', textAlign: 'center', fontSize: '1.5rem', color: '#1b7bc2' }}>{title}</h1>
+    <main style={{ 
+      padding: '1rem', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      justifyContent: 'center', 
+      alignItems: 'center', 
+      minHeight: '100vh',
+      minHeight: '100dvh',
+      backgroundColor: '#0a0d14',
+      boxSizing: 'border-box'
+    }} dir="rtl">
+      <div style={{ 
+        width: '100%', 
+        maxWidth: '680px', 
+        padding: '1.5rem', 
+        borderRadius: '16px',
+        backgroundColor: 'rgba(23, 27, 38, 0.9)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.7)',
+        backdropFilter: 'blur(16px)',
+        WebkitBackdropFilter: 'blur(16px)'
+      }}>
+        <h1 style={{ 
+          marginBottom: '1.2rem', 
+          textAlign: 'center', 
+          fontSize: '1.5rem', 
+          fontWeight: 'bold', 
+          color: '#38bdf8',
+          letterSpacing: '-0.01em',
+          lineHeight: 1.4
+        }}>
+          {title}
+        </h1>
         
         {videoUrl ? (
-          <div style={{ borderRadius: '8px', overflow: 'hidden', width: '100%' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', width: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
             <CustomPlayer url={videoUrl} onPlay={handlePlay} />
           </div>
         ) : (
-          <p style={{ textAlign: 'center' }}>لا يوجد فيديو حالياً.</p>
+          <p style={{ textAlign: 'center', color: '#94a3b8' }}>لا يوجد فيديو متاح حالياً.</p>
         )}
         
       </div>
