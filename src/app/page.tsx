@@ -226,7 +226,7 @@ export default function Home() {
 
   return (
     <main style={{ 
-      padding: '1rem', 
+      padding: '0.75rem', 
       display: 'flex', 
       flexDirection: 'column', 
       justifyContent: 'center', 
@@ -237,19 +237,19 @@ export default function Home() {
     }} dir="rtl">
       <div style={{ 
         width: '100%', 
-        maxWidth: '680px', 
-        padding: '1.5rem', 
+        maxWidth: '960px', 
+        padding: '1.2rem', 
         borderRadius: '16px',
-        backgroundColor: 'rgba(23, 27, 38, 0.9)',
+        backgroundColor: 'rgba(23, 27, 38, 0.95)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 20px 40px -10px rgba(0, 0, 0, 0.7)',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)',
         backdropFilter: 'blur(16px)',
         WebkitBackdropFilter: 'blur(16px)'
       }}>
         <h1 style={{ 
           marginBottom: '1.2rem', 
           textAlign: 'center', 
-          fontSize: '1.5rem', 
+          fontSize: '1.6rem', 
           fontWeight: 'bold', 
           color: '#38bdf8',
           letterSpacing: '-0.01em',
@@ -259,11 +259,11 @@ export default function Home() {
         </h1>
         
         {videoUrl ? (
-          <div style={{ borderRadius: '12px', overflow: 'hidden', width: '100%', boxShadow: '0 8px 24px rgba(0,0,0,0.5)' }}>
+          <div style={{ borderRadius: '12px', overflow: 'hidden', width: '100%', boxShadow: '0 10px 30px rgba(0,0,0,0.6)' }}>
             <CustomPlayer url={videoUrl} onPlay={handlePlay} />
           </div>
         ) : (
-          <p style={{ textAlign: 'center', color: '#94a3b8' }}>لا يوجد فيديو متاح حالياً.</p>
+          <p style={{ textAlign: 'center', color: '#94a3b8', padding: '2rem 0' }}>لا يوجد فيديو متاح حالياً.</p>
         )}
         
       </div>
