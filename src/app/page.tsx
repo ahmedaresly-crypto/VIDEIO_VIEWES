@@ -218,7 +218,7 @@ export default function Home() {
 
   if (loading || !mounted) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', minHeight: '100dvh', backgroundColor: '#0a0d14', color: '#94a3b8', fontSize: '1.1rem', fontFamily: 'Arial, sans-serif' }} dir="rtl">
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100dvh', backgroundColor: '#0a0d14', color: '#94a3b8', fontSize: '1.1rem', fontFamily: 'Arial, sans-serif' }} dir="rtl">
         جاري التحميل...
       </div>
     );
@@ -231,7 +231,6 @@ export default function Home() {
       flexDirection: 'column', 
       justifyContent: 'center', 
       alignItems: 'center', 
-      minHeight: '100vh',
       minHeight: '100dvh',
       backgroundColor: '#0a0d14',
       boxSizing: 'border-box'
